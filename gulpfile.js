@@ -8,62 +8,73 @@
  * @version    1.0 Beta
  */
 
-var gulp         = require('gulp'),
-    browserSync  = require('browser-sync'),
-    sass         = require('gulp-sass'),
-    autoprefixer = require('gulp-autoprefixer'),
-    cleanCSS     = require('gulp-clean-css'),
-    uglify       = require('gulp-uglify'),
-    renameFiles  = require('gulp-rename');
-    
-  gulp.task('browser-sync', function() {
-    browserSync.init(null, {
-      server: {
-        // baseDir: "app",
-        proxy: 'http://localhost:8888/scrum/',
-        // files: ['app/views/**/*.*', 'public/**/*.css', 'public/**/*.js'],
-        browser: 'google chrome',
-        port: 3005,
-        // open: false
-      }
-    });
+const Gulp = require('gulp');
+const BrowserSync  = require('browser-sync');
+const sass         = require('gulp-sass');
+const autoprefixer = require('gulp-autoprefixer');
+const cleanCSS     = require('gulp-clean-css');
+const uglify       = require('gulp-uglify');
+const renameFiles  = require('gulp-rename');
+
+const Url = 'http://localhost:8888/scrum/';
+const Browser = 'google chrome';
+
+function browserSync(cb){
+  BrowserSync.init({
+    server: {
+      // baseDir: "app",
+      proxy: Url,
+      // files: ['app/views/**/*.*', 'public/**/*.css', 'public/**/*.js'],
+      browser: Browser,
+      port: 3005,
+      // open: false
+    }
+  }, function (err, bs){
+    cb();
   });
-  
-  gulp.task('bs-reload', function () {
-    browserSync.reload();
-  });
-    
-  gulp.task('css', function () {
-    return gulp.src('src/stylesheets/**/*.scss')
-      .pipe(sass().on('error', sass.logError))
-      .pipe(autoprefixer('last 3 version'))
-      .pipe(gulp.dest('app/assets/stylesheets'))
-      .pipe(cleanCSS({debug: true}, function(details) {
-        console.log('Original Size : ' + details.name + ': ' + details.stats.originalSize + ' bytes');
-        console.log('Minified Size : ' + details.name + ': ' + details.stats.minifiedSize + ' bytes');
-      }))
-      .pipe(renameFiles({ suffix: '.min' }))
-      .pipe(gulp.dest('app/assets/stylesheets'))
-      .pipe(browserSync.reload({
-        stream:true
-      }));
-  });
-  
-  
-  gulp.task('js',function(){
-    return gulp.src('src/scripts/**/*.js')
-      .pipe(gulp.dest('app/assets/scripts'))
-      .pipe(uglify())
-      .pipe(renameFiles({ suffix: '.min' }))
-      .pipe(gulp.dest('app/assets/scripts'))
-      .pipe(browserSync.reload({
-        stream: true, 
-        once: true
-      }));
-  });
-  
-  gulp.task('default', ['js', 'css', 'browser-sync'], function () {
-    gulp.watch("src/stylesheets/**/*.scss", ['css']);
-    gulp.watch("src/scripts/**/*.js", ['js']);
-    gulp.watch("app/*.html", ['bs-reload']);
-  });
+};
+
+function bsReload(cb){
+  BrowserSync.reload();
+  cb();
+};
+
+function css(){
+  return Gulp.src('src/stylesheets/**/*.scss')
+    .pipe(sass().on('error', sass.logError))
+    .pipe(autoprefixer('last 3 version'))
+    .pipe(Gulp.dest('app/assets/stylesheets'))
+}
+function cssMinify(){
+  return Gulp.src('app/assets/stylesheets/**/*.css')
+    .pipe(cleanCSS({debug: true}, function(details) {
+      console.log('Original Size : ' + details.name + ': ' + details.stats.originalSize + ' bytes');
+      console.log('Minified Size : ' + details.name + ': ' + details.stats.minifiedSize + ' bytes');
+    }))
+    .pipe(renameFiles({ suffix: '.min' }))
+    .pipe(Gulp.dest('app/assets/stylesheets'))
+    // .pipe(browserSync.reload({ // ??
+    //   stream:true
+    // }));
+};
+
+function jsMinify(){
+  return Gulp.src('src/javascript/**/*.js')
+    .pipe(uglify())
+    .pipe(renameFiles({ suffix: '.min' }))
+    .pipe(Gulp.dest('app/assets/scripts'))
+    // .pipe(browserSync.reload({ // ??
+    //   stream: true, 
+    //   once: true
+    // }));
+};
+
+const cssTask = Gulp.series(css, cssMinify);
+const jsTask = jsMinify
+const buildTask = Gulp.parallel(cssTask, jsTask);
+
+exports.server = browserSync;
+exports.cssBuild = cssTask;
+exports.jsBuild = jsTask;
+exports.build = buildTask;
+exports.default = Gulp.series(buildTask, browserSync);
