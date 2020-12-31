@@ -71,30 +71,29 @@ var App = function() {
     $('header li').on('dblclick', function(e){
         e.preventDefault();
         var statusToChange = $(this).attr('data-id');
-        
+
         $('#change-status-modal').removeClass('hide');
 
         $('#new_status').val($(this).text());
+        $('#new_status_id').val(statusToChange);
+    });
+    $('#change-status-modal').find('form').on('submit', function(e){
+      e.preventDefault();
+      var newStatus = $('#new_status').val();
+      var newStatusId = $('#new_status_id').val();
+      var currentStatus = JSON.parse(LocalStorage.get('status'));
+      currentStatus.map(function(obj){
+        if(obj.key == newStatusId)
+        {
+          obj.value = newStatus;
+        }
+      });
 
-        $('#change-status-modal').find('form').on('submit', function(e){
-            e.preventDefault();
-            var newStatus = $('#new_status').val();
-            var currentStatus = JSON.parse(LocalStorage.get('status'));
-            currentStatus.map(function(obj){
-                if(obj.key == statusToChange)
-                {
-                  obj.value = newStatus;
-                }
-            });
+      $('header ul li[data-id=' + newStatusId + ']').html(newStatus);
 
-            $('header ul li[data-id=' + statusToChange + ']').html(newStatus);
+      LocalStorage.set('status', JSON.stringify(currentStatus));
 
-            LocalStorage.set('status', JSON.stringify(currentStatus));
-
-            
-            $('.close-modal').trigger('click');
-
-        });
+      $('.close-modal').trigger('click');
     });
   }
   
