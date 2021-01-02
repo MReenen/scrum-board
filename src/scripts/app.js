@@ -22,6 +22,63 @@ var App = function() {
     printNotes();
     editTask();
     exitEditMode();
+    exportData();
+    importData();
+  }
+
+  function exportData(){
+    function getFullData(){
+      var data = {};
+      data['status'] = JSON.parse(LocalStorage.get('status'));
+      data['taskCounter'] = parseInt(LocalStorage.get('taskCounter'));
+      for(var i=0; i <= data['taskCounter']; i++){
+        const task = LocalStorage.get('task-' + i);
+        if(task != null)
+          data['task-' + i] = JSON.parse(task)
+      }
+      console.log(data);
+      return data;
+    }
+
+    $('#export').on('click', function(e){
+      var btn = document.createElement('a');
+      btn.setAttribute('download', 'scrum-backup.json');
+      btn.style.display = 'none';
+    
+      var url = JSON.stringify(getFullData());
+      url = encodeURI("data:text/json;charset=utf-8," + url);
+      btn.setAttribute('href', url);
+      
+      document.body.appendChild(btn);
+      btn.click();
+      btn.remove();
+    })
+  }
+
+  function importData(){
+    $('#import').on('click', function(e){
+        e.preventDefault();
+
+        $('#import-modal').removeClass('hide');
+    });
+    $('#import-modal').find('form').on('submit', function(e){
+      e.preventDefault();
+      var file = e.target[0].files[0];
+
+      var fr = new FileReader();
+      fr.onload = function(){
+        var data = JSON.parse(fr.result);
+        for(key in data){
+          if(!data.hasOwnProperty(key))
+            continue;
+          LocalStorage.set(key, JSON.stringify(data[key]));
+        }
+        window.location.reload()
+      }
+      fr.readAsText(file);
+
+      $('.close-modal').trigger('click');
+    });
   }
   
   function preset() {

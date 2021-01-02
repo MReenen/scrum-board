@@ -28,6 +28,18 @@
               <img src="app/assets/images/bin.svg" alt="">
             </a>
           </li>
+          <li data-tooltip="Create backup">
+            <a href="#" class="export" id="export">
+              export
+              <!-- <img src="app/assets/images/.svg" alt=""> -->
+            </a>
+          </li>
+          <li data-tooltip="Import backup">
+            <a href="#" class="import" id="import">
+              import
+              <!-- <img src="app/assets/images/.svg" alt=""> -->
+            </a>
+          </li>
           <li data-tooltip="Add Task">
             <a href="#" id="add-task" class="add-task">
               <img src="app/assets/images/plus.svg" alt="">
@@ -93,6 +105,25 @@
       
       <div class="create-task-branding">
         Scrum <span>Board</span> <sup>Beta</sup>
+      </div>
+    </div>
+
+    <div class="modal hide" id="import-modal">
+      <div class="modal-wrapper">
+        <form action="index.html" method="post" class="change-status-form" name="change_status">
+           <span class="close-modal">X</span>
+ 
+           <h3>Import backup file</h3>
+ 
+           <ul>
+             <li>
+               <input type="file" id="importfile" autofocus>
+             </li>
+             <li>
+               <input type="submit" name="import" value="Import data">
+             </li>
+           </ul>
+        </form>
       </div>
     </div>
     
