@@ -8,66 +8,64 @@
  * @version    1.0 Beta
  */
 
-const BrowserSync  = require('browser-sync');
+// const BrowserSync  = require('browser-sync');
+const fs   = require('fs');
+const http = require('http');
 const Gulp = require('gulp');
 Gulp.clean = require('gulp-clean');
-const sass         = require('gulp-sass');
-const autoprefixer = require('gulp-autoprefixer');
-const cleanCSS     = require('gulp-clean-css');
-const uglify       = require('gulp-uglify');
-const renameFiles  = require('gulp-rename');
+Gulp.sass         = require('gulp-sass');
+Gulp.autoprefixer = require('gulp-autoprefixer');
+Gulp.cleanCSS     = require('gulp-clean-css');
+Gulp.uglify       = require('gulp-uglify');
+Gulp.rename       = require('gulp-rename');
 
-const Url = 'http://localhost:8888/scrum/';
-const Browser = 'google chrome';
+const PORT = 3000;
 
-function browserSync(cb){
-  BrowserSync.init({
-    server: {
-      // baseDir: "app",
-      proxy: Url,
-      // files: ['app/views/**/*.*', 'public/**/*.css', 'public/**/*.js'],
-      browser: Browser,
-      port: 3005,
-      // open: false
+function httpd(){
+  function servePage(req, res, url){
+    if(url[url.length - 1] == '/'){
+      return servePage(req, res, url + 'index.html')
     }
-  }, function (err, bs){
-    cb();
-  });
-};
-
-function bsReload(cb){
-  BrowserSync.reload();
-  cb();
-};
+    urlSplit = url.split('.');
+    if(urlSplit[urlSplit.length-1].length > 4){
+      return servePage(req, res, url + '/index.html')
+    }
+    fs.readFile(__dirname + '/app' + url, function (err,data) {
+      if (err) {
+        res.writeHead(404);
+        res.end(JSON.stringify(err));
+        return;
+      }
+      res.writeHead(200);
+      res.end(data);
+    });
+  }
+  http.createServer(function (req, res) {
+    servePage(req, res, req.url)
+  }).listen(PORT);
+}
 
 function css(){
   return Gulp.src('src/stylesheets/**/*.scss')
-    .pipe(sass().on('error', sass.logError))
-    .pipe(autoprefixer('last 3 version'))
+    .pipe(Gulp.sass().on('error', Gulp.sass.logError))
+    .pipe(Gulp.autoprefixer('last 3 version'))
     .pipe(Gulp.dest('app/assets/stylesheets'))
 }
 function cssMinify(){
   return Gulp.src(['app/assets/stylesheets/**/*.css', '!app/assets/stylesheets/**/*.min.css'])
-    .pipe(cleanCSS({debug: true}, function(details) {
+    .pipe(Gulp.cleanCSS({debug: true}, function(details) {
       console.log('Original Size : ' + details.name + ': ' + details.stats.originalSize + ' bytes');
       console.log('Minified Size : ' + details.name + ': ' + details.stats.minifiedSize + ' bytes');
     }))
-    .pipe(renameFiles({ suffix: '.min' }))
+    .pipe(Gulp.rename({ suffix: '.min' }))
     .pipe(Gulp.dest('app/assets/stylesheets'))
-    // .pipe(browserSync.reload({ // ??
-    //   stream:true
-    // }));
 };
 
 function jsMinify(){
   return Gulp.src('src/scripts/**/*.js')
-    .pipe(uglify())
-    .pipe(renameFiles({ suffix: '.min' }))
+    .pipe(Gulp.uglify())
+    .pipe(Gulp.rename({ suffix: '.min' }))
     .pipe(Gulp.dest('app/assets/scripts'))
-    // .pipe(browserSync.reload({ // ??
-    //   stream: true, 
-    //   once: true
-    // }));
 };
 
 function clean(mode = 'all'){
@@ -105,8 +103,8 @@ const jsTask = jsMinify;
 const buildTask = Gulp.parallel(cssTask, jsTask);
 
 exports.clean = clean('all');
-exports.server = browserSync;
+exports.server = httpd;
 exports.cssBuild = cssTask;
 exports.jsBuild = jsTask;
 exports.build = Gulp.series(clean('all'), buildTask);
-exports.default = Gulp.series(buildTask, browserSync);
+exports.default = Gulp.series(buildTask, httpd);

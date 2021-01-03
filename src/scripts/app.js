@@ -29,10 +29,10 @@ var App = function() {
   function exportData(){
     function getFullData(){
       var data = {};
-      data['status'] = JSON.parse(LocalStorage.get('status'));
-      data['taskCounter'] = parseInt(LocalStorage.get('taskCounter'));
+      data['status'] = JSON.parse(localStorage.getItem('status'));
+      data['taskCounter'] = parseInt(localStorage.getItem('taskCounter'));
       for(var i=0; i <= data['taskCounter']; i++){
-        const task = LocalStorage.get('task-' + i);
+        const task = localStorage.getItem('task-' + i);
         if(task != null)
           data['task-' + i] = JSON.parse(task)
       }
@@ -71,7 +71,7 @@ var App = function() {
         for(key in data){
           if(!data.hasOwnProperty(key))
             continue;
-          LocalStorage.set(key, JSON.stringify(data[key]));
+          localStorage.setItem(key, JSON.stringify(data[key]));
         }
         window.location.reload()
       }
@@ -95,22 +95,22 @@ var App = function() {
       status: 'pending'
     }
     
-    if(!LocalStorage.get('appInitialized', true)) {
-      LocalStorage.set('taskCounter', 1);
-      LocalStorage.set('status', JSON.stringify([
+    if(!localStorage.getItem('appInitialized', true)) {
+      localStorage.setItem('taskCounter', 1);
+      localStorage.setItem('status', JSON.stringify([
         {key: 'rejected', value: 'Rejected'}, 
         {key: 'pending', value: 'Pending'}, 
         {key: 'development', value: 'Development'}, 
         {key: 'testing', value: 'Testing'}, 
         {key: 'production', value: 'Production'}]));
-      LocalStorage.set('task-1', JSON.stringify(defaultTask));
-      LocalStorage.set('appInitialized', true);
+      localStorage.setItem('task-1', JSON.stringify(defaultTask));
+      localStorage.setItem('appInitialized', true);
     }
   }
 
   function addStatusColumns(){
 
-    var statusArr = JSON.parse(LocalStorage.get('status'));
+    var statusArr = JSON.parse(localStorage.getItem('status'));
     var headerObj = $('header ul');
     var myDashboard = $('#dashboard');
     statusArr.map(function(item){
@@ -138,7 +138,7 @@ var App = function() {
       e.preventDefault();
       var newStatus = $('#new_status').val();
       var newStatusId = $('#new_status_id').val();
-      var currentStatus = JSON.parse(LocalStorage.get('status'));
+      var currentStatus = JSON.parse(localStorage.getItem('status'));
       currentStatus.map(function(obj){
         if(obj.key == newStatusId)
         {
@@ -148,7 +148,7 @@ var App = function() {
 
       $('header ul li[data-id=' + newStatusId + ']').html(newStatus);
 
-      LocalStorage.set('status', JSON.stringify(currentStatus));
+      localStorage.setItem('status', JSON.stringify(currentStatus));
 
       $('.close-modal').trigger('click');
     });
@@ -178,11 +178,11 @@ var App = function() {
           return;
         }
         
-        var iid = LocalStorage.get('taskCounter');
+        var iid = localStorage.getItem('taskCounter');
         obj.id = ++iid;
         obj.status = 'pending';
-        LocalStorage.set('task-' + obj.id, JSON.stringify(obj));
-        LocalStorage.set('taskCounter', iid);
+        localStorage.setItem('task-' + obj.id, JSON.stringify(obj));
+        localStorage.setItem('taskCounter', iid);
         
         var newCard = template([obj]);
         $('#dashboard #' + obj.status).append(newCard);
@@ -206,11 +206,11 @@ var App = function() {
     $(document).on('input', '.card p', function() {
       var taskId = $(this).parents('.card').data('task-id');
       var fieldToEdit = $(this).data('field');
-      var getTaskData = JSON.parse(LocalStorage.get('task-' + taskId));
+      var getTaskData = JSON.parse(localStorage.getItem('task-' + taskId));
       
       getTaskData[fieldToEdit] = $(this).text();
       
-      LocalStorage.set('task-' + taskId, JSON.stringify(getTaskData));
+      localStorage.setItem('task-' + taskId, JSON.stringify(getTaskData));
     });
   }
   
@@ -256,7 +256,7 @@ var App = function() {
         if($(this).attr('id') == 'remove') {
           //Deletes task
           elm.remove();
-          LocalStorage.remove('task-' + taskId);
+          localStorage.removeItem('task-' + taskId);
           $('#removed-task-notification').text('Task removed successfully').removeClass('hide');
           
           
@@ -268,10 +268,10 @@ var App = function() {
           if(parentId != currentId) {
             $(elm).detach().removeAttr('style').appendTo(this);
             
-            var getTaskData = JSON.parse(LocalStorage.get('task-' + taskId));
+            var getTaskData = JSON.parse(localStorage.getItem('task-' + taskId));
             getTaskData.status = currentId;
             
-            LocalStorage.set('task-' + taskId, JSON.stringify(getTaskData));
+            localStorage.setItem('task-' + taskId, JSON.stringify(getTaskData));
           }
         }
         
@@ -312,7 +312,7 @@ var App = function() {
     var source = $("#task-card-template").html();
     var template = Handlebars.compile(source);
     
-    var status = JSON.parse(LocalStorage.get('status'));
+    var status = JSON.parse(localStorage.getItem('status'));
     
     for(var i = 0, l = status.length; i < l; i++) {
       var result = App.getAllNotes().filter(function(obj) {
@@ -328,13 +328,13 @@ var App = function() {
   }
   
   function tips() {
-    if(!JSON.parse(LocalStorage.get('showedTip'))) {
+    if(!JSON.parse(localStorage.getItem('showedTip'))) {
       $('#tips').removeClass('hide').addClass('tips');
     }
     
     $('#tips').on('click', function() {
       $(this).addClass('hide');
-      LocalStorage.set('showedTip', true);
+      localStorage.setItem('showedTip', true);
     });
   }
   
